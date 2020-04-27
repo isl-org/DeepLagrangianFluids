@@ -1,0 +1,18 @@
+We use a simple scene description format for running trained networks on new 
+scenes. The scene description uses JSON and looks like this
+
+{
+  "walls" : [{"path":"../datasets/models/Box.obj", "translation":[0,0,0]} ],
+  "fluids": [{"path":"../datasets/models/Fluid.obj", "velocity":[0.3,0,0.2], "translation":[0,1,0], "start":0, "stop":1, "step":1}]
+}
+
+The root object is a dictionary which contains the keys "walls" and "fluids"
+which describe the static and the fluid particles respectively. Particles will
+be created from obj files with surface sampling (walls) and volume sampling
+(fluids). 
+Most parameters are self-explanatory. The fluid objects have the
+fields "start", "stop" and "step", which define when, how long and at which 
+frequency fluid particles will be generated. In the example we generate fluid
+particles once in the first simulation frame. To create an emitter that creates
+particles every 20 frames until frame 200 one would use 
+  "start":0, "stop":200, "step":20
