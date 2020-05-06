@@ -115,8 +115,7 @@ class MyParticleNetwork(tf.keras.Model):
             box_feats,
             box,
             pos,
-            filter_extent,
-            fixed_radius_search_hash_table=fixed_radius_search_hash_table)
+            filter_extent)
 
         feats = tf.concat([
             self.ans_conv0_obstacle, self.ans_conv0_fluid, self.ans_dense0_fluid
