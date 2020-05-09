@@ -31,6 +31,8 @@ To stay informed about updates we recommend to watch this repository.
 - python-zstandard (```pip install zstandard``` https://github.com/indygreg/python-zstandard)
 - partio (https://github.com/wdas/partio)
 - SciPy
+- OpenVDB with python binding (optional for creating surface meshes, https://github.com/AcademySoftwareFoundation/openvdb)
+- plyfile (optional for creating surface meshes, ```pip install plyfile```)
 
 The versions match the configuration that we have tested on a system with Ubuntu 18.04.
 SPlisHSPlasH 2.4.0 is required for generating training data (ensure that it is compiled in *Release* mode).
@@ -104,6 +106,9 @@ the data generation:
  - The sequence of pseudorandom numbers used in the data generation is 
    different, which results in different scenes for training and testing.
 
+## Rendering
+
+See the [scenes](scenes/README.md) directory for instructions on how to create and render the example scenes like the canyon.
 
 ## Licenses
 

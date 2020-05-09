@@ -1,0 +1,4 @@
+{
+"walls": [{"path":"canyon_boundary.obj", "translation":[0,0,0], "invert_normals": true} ],
+"fluids":[{"path":"canyon_emitter.obj","velocity":[0,0,0], "translation":[0,0,0], "start":0, "stop":800, "step":4}]
+}
