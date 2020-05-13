@@ -39,7 +39,7 @@ def run_sim(trainscript_module, weights_path, scene, num_steps, output_dir,
     # init the network
     model = trainscript_module.create_model()
     model.init()
-    model.load_weights(weights_path)
+    model.load_weights(weights_path, by_name=True)
 
     # prepare static particles
     walls = []
