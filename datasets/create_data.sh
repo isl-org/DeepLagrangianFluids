@@ -29,10 +29,10 @@ python create_physics_records.py --input $OUTPUT_SCENES_DIR \
 mkdir $OUTPUT_DATA_DIR/train
 mkdir $OUTPUT_DATA_DIR/valid
 
-for seed in `seq -w 1 200`; do
-        mv $OUTPUT_DATA_DIR/sim_0${seed}_*.msgpack.zst $OUTPUT_DATA_DIR/train
+for seed in `seq -f "%04g" 1 200`; do
+        mv $OUTPUT_DATA_DIR/sim_${seed}_*.msgpack.zst $OUTPUT_DATA_DIR/train
 done
 
-for seed in `seq -w 201 220`; do
-        mv $OUTPUT_DATA_DIR/sim_0${seed}_*.msgpack.zst $OUTPUT_DATA_DIR/valid
+for seed in `seq -f "%04g" 201 220`; do
+        mv $OUTPUT_DATA_DIR/sim_${seed}_*.msgpack.zst $OUTPUT_DATA_DIR/valid
 done

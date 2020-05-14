@@ -23,7 +23,7 @@ To stay informed about updates we recommend to watch this repository.
 
 - Tensorflow 2.0
 - Open3D with ML module (https://github.com/intel-isl/Open3D/tree/ml-module)
-- SPlisHSPlasH (for generating training data, https://github.com/InteractiveComputerGraphics/SPlisHSPlasH)
+- SPlisHSPlasH 2.4.0 (for generating training data, https://github.com/InteractiveComputerGraphics/SPlisHSPlasH)
 - Tensorpack (for reading data, https://github.com/tensorpack/tensorpack)
 - python-prctl (needed by Tensorpack DataFlow; depends on libcap-dev, install with ```apt install libcap-dev``` )
 - msgpack (```pip install msgpack``` )
@@ -33,7 +33,8 @@ To stay informed about updates we recommend to watch this repository.
 - SciPy
 
 The versions match the configuration that we have tested on a system with Ubuntu 18.04.
-We recommend to use the latest versions of all packages.
+SPlisHSPlasH 2.4.0 is required for generating training data (ensure that it is compiled in *Release* mode).
+We recommend to use the latest versions for all other packages.
 
 
 ### Building Open3D with ML module

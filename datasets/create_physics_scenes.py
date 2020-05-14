@@ -221,9 +221,9 @@ def find_valid_fluid_start_positions(box_rasterized, fluid_rasterized):
 def run_simulator(scene, output_dir):
     """Runs the simulator for the specified scene file"""
     with tempfile.TemporaryDirectory() as tmpdir:
-        os.environ['SPHSIM_OUTPUT_PATH'] = output_dir
         status = subprocess.run([
-            SIMULATOR_BIN, '--no-cache', '--no-gui', '--no-initial-pause', scene
+            SIMULATOR_BIN, '--no-cache', '--no-gui', '--no-initial-pause',
+            '--output-dir', output_dir, scene
         ])
 
 
@@ -478,7 +478,7 @@ def main():
 
     args = parser.parse_args()
 
-    os.makedirs(args.output)
+    os.makedirs(args.output, exist_ok=True)
 
     create_fluid_data(args.output, args.seed, args)
 
