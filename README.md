@@ -7,7 +7,7 @@ model or just run a pretrained model.
 
 <p align="center"> <img src="images/canyon.gif" alt="canyon video"> </p>
 
-Please cite our paper if you find this code useful:
+Please cite our paper [(pdf)](https://openreview.net/pdf?id=B1lDoJSYDH) if you find this code useful:
 ```
 @inproceedings{Ummenhofer2020Lagrangian,
         title     = {Lagrangian Fluid Simulation with Continuous Convolutions},
@@ -44,12 +44,14 @@ At the moment Open3D needs to be build from source to make the code in this
 repo work. To build Open3D with the ML module and Tensorflow ops do the 
 following
 ```bash
-git clone --branch ml-module https://github.com/intel-isl/Open3D.git
+git clone --recursive --branch ml-module https://github.com/intel-isl/Open3D.git
+# check the file Open3D/util/scripts/install-deps-ubuntu.sh
+# for dependencies and install them. For more instructions see the Open3D documentation
 
 mkdir Open3D/build
 cd Open3D/build
 
-cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_TENSORFLOW_OPS=ON
+cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_TENSORFLOW_OPS=ON -DBUILD_CUDA_MODULE=ON
 make install-pip-package
 ```
 
@@ -82,6 +84,11 @@ To generate the training and validation data
     ./create_data.sh
     ```
 
+### Data download
+If you want to skip the data generation step you can download training and validation data from this [link](https://drive.google.com/file/d/1B2uszVnS4qj8momjr73k_-iJixjZuNL0).
+The training data has been generated with the scripts in this repository. 
+The validation data corresponds to the data used in the paper.
+
 ### Training scripts
 To train the model with the generated data simply run ```scripts/train_network.py``` from within the ```scripts``` folder.
 The script will create a folder ```train_network``` with snapshots and log files.
@@ -105,6 +112,8 @@ the data generation:
    SPlisHSPlasH
  - The sequence of pseudorandom numbers used in the data generation is 
    different, which results in different scenes for training and testing.
+
+If you have downloaded the validation data then the output should be similar to the numbers in the paper.
 
 ## Rendering
 
