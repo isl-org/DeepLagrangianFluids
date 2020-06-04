@@ -85,7 +85,7 @@ To generate the training and validation data
     ```
 
 ### Data download
-If you want to skip the data generation step you can download training and validation data from this [link](https://drive.google.com/file/d/1B2uszVnS4qj8momjr73k_-iJixjZuNL0).
+If you want to skip the data generation step you can download training and validation data from this [link](https://drive.google.com/file/d/1b3OjeXnsvwUAeUq2Z0lcrX7j9U7zLO07).
 The training data has been generated with the scripts in this repository. 
 The validation data corresponds to the data used in the paper.
 
