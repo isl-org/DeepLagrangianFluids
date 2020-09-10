@@ -10,7 +10,7 @@ from multiprocessing import Pool
 
 
 def read_particles(filename):
-    data = np.load(path, allow_pickle=False)
+    data = np.load(filename, allow_pickle=False)
     return data['pos']
 
 
@@ -164,7 +164,7 @@ def main():
     input_files = sorted(glob(args.input_glob))
 
     for input_file in input_files:
-        if not os.path.isfile(input_files):
+        if not os.path.isfile(input_file):
             raise ValueError('{} is not a file.'.format(input_file))
     print(len(input_files), 'files')
 
