@@ -21,9 +21,12 @@ def _get_stop_time(time_buffer=5 * 60):
     Returns None if the variable has not been set.
     """
     if 'STOP_TIME' in os.environ:
-        return int(os.environ['STOP_TIME']) - time_buffer
-    else:
-        return None
+        try:
+            stop_time = int(os.environ['STOP_TIME']) - time_buffer
+            return stop_time
+        except:
+            pass
+    return None
 
 
 STOP_TIME = _get_stop_time()
@@ -32,10 +35,9 @@ STOP_TIME = _get_stop_time()
 class Trainer:
 
     def __init__(
-            self,
-            root_dir,
-            signal_handler_signals=(signal.SIGINT, signal.SIGUSR1,
-                                    signal.SIGTERM),
+        self,
+        root_dir,
+        signal_handler_signals=(signal.SIGINT, signal.SIGUSR1, signal.SIGTERM),
     ):
         """
         Creates a new Trainer object.
@@ -139,15 +141,15 @@ class Trainer:
                 tf.summary.scalar(name, value)
 
     def keep_training(
-            self,
-            step_var,
-            stop_step,
-            checkpoint_manager,
-            stop_time=STOP_TIME,
-            display_interval=10,
-            display_str_list=None,
-            runstats_interval_minutes=10,
-            step_var_increment=1,
+        self,
+        step_var,
+        stop_step,
+        checkpoint_manager,
+        stop_time=STOP_TIME,
+        display_interval=10,
+        display_str_list=None,
+        runstats_interval_minutes=10,
+        step_var_increment=1,
     ):
         """
         This function increments the step_var, displays and logs runtime information and saves checkpoints.
