@@ -1,5 +1,5 @@
 import tensorflow as tf
-import open3d.ml.tf as o3dml
+import open3d.ml.tf as ml3d
 import numpy as np
 
 
@@ -33,7 +33,7 @@ class MyParticleNetwork(tf.keras.Model):
             return tf.clip_by_value((1 - r_sqr)**3, 0, 1)
 
         def Conv(name, activation=None, **kwargs):
-            conv_fn = o3dml.layers.ContinuousConv
+            conv_fn = ml3d.layers.ContinuousConv
 
             window_fn = None
             if self.use_window == True:
@@ -132,7 +132,7 @@ class MyParticleNetwork(tf.keras.Model):
 
         # compute the number of fluid neighbors.
         # this info is used in the loss function during training.
-        self.num_fluid_neighbors = o3dml.ops.reduce_subarrays_sum(
+        self.num_fluid_neighbors = ml3d.ops.reduce_subarrays_sum(
             tf.ones_like(self.conv0_fluid.nns.neighbors_index,
                          dtype=tf.float32),
             self.conv0_fluid.nns.neighbors_row_splits)
