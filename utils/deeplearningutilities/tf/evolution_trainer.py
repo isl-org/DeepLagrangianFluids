@@ -6,13 +6,12 @@ import signal
 class EvolutionTrainer(Trainer):
 
     def __init__(
-            self,
-            root_dir,
-            evolutions,
-            keep_checkpoint_steps,
-            save_interval_minutes=30,
-            signal_handler_signals=(signal.SIGINT, signal.SIGUSR1,
-                                    signal.SIGTERM),
+        self,
+        root_dir,
+        evolutions,
+        keep_checkpoint_steps,
+        save_interval_minutes=30,
+        signal_handler_signals=(signal.SIGINT, signal.SIGUSR1, signal.SIGTERM),
     ):
         """
         Creates a new EvolutionTrainer object.
@@ -128,14 +127,14 @@ class EvolutionTrainer(Trainer):
         return self._checkpoint_manager
 
     def keep_training(
-            self,
-            step_var,
-            checkpoint,
-            stop_time=STOP_TIME,
-            display_interval=10,
-            display_str_list=None,
-            runstats_interval_minutes=10,
-            step_var_increment=1,
+        self,
+        step_var,
+        checkpoint,
+        stop_time=STOP_TIME,
+        display_interval=10,
+        display_str_list=None,
+        runstats_interval_minutes=10,
+        step_var_increment=1,
     ):
         """
         This function increments the step_var, displays and logs runtime information and saves checkpoints.

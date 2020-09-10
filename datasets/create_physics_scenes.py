@@ -196,9 +196,9 @@ def find_valid_fluid_start_positions(box_rasterized, fluid_rasterized):
                 fluid_rasterized[2]):
             if idx[1] == 0:
                 valid_fluid_start_positions_arr[idx[0], idx[1], idx[2]] = 1
-            elif np.count_nonzero(
-                    valid_fluid_start_positions_arr[idx[0], 0:idx[1], idx[2]]
-            ) == 0:
+            elif np.count_nonzero(valid_fluid_start_positions_arr[idx[0],
+                                                                  0:idx[1],
+                                                                  idx[2]]) == 0:
                 valid_fluid_start_positions_arr[idx[0], idx[1], idx[2]] = 1
 
     valid_pos = np.stack(np.nonzero(valid_fluid_start_positions_arr), axis=-1)
@@ -208,8 +208,8 @@ def find_valid_fluid_start_positions(box_rasterized, fluid_rasterized):
     pos = selected_pos
     pos2 = pos + fluid_shape
     view = box_rasterized[2][pos[0]:pos2[0], pos[1]:pos2[1], pos[2]:pos2[2]]
-    box_rasterized[2][pos[0]:pos2[0], pos[1]:pos2[1], pos[2]:
-                      pos2[2]] = np.logical_and(
+    box_rasterized[2][pos[0]:pos2[0], pos[1]:pos2[1],
+                      pos[2]:pos2[2]] = np.logical_and(
                           np.logical_not(fluid_rasterized[2]), view)
 
     selected_pos += box_rasterized[0]
@@ -244,7 +244,8 @@ def create_fluid_data(output_dir, seed, options):
 
     num_objects = np.random.choice([1, 2, 3])
     # override the number of objects to generate
-    if options.num_objects > 0: num_objects = options.num_objects
+    if options.num_objects > 0:
+        num_objects = options.num_objects
     # num_objects = random.choice([1])
     print('num_objects', num_objects)
 
@@ -278,8 +279,10 @@ def create_fluid_data(output_dir, seed, options):
         elif options.log10_uniform_viscosity:
             viscosity = 0.01 * 10**np.random.uniform(0.0, 1.5)
 
-        if options.default_density: density = 1000
-        if options.default_viscosity: viscosity = 0.01
+        if options.default_density:
+            density = 1000
+        if options.default_viscosity:
+            viscosity = 0.01
 
         return {
             'type': 'fluid',

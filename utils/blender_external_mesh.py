@@ -66,7 +66,7 @@ def load_external_mesh_handler(scene):
             # skip if not visible
             if obj.hide_viewport and obj.hide_render:
                 continue
-            
+
             external_files = sorted(
                 glob(bpy.path.abspath(obj['external_files'])))
 

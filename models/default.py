@@ -6,14 +6,14 @@ import numpy as np
 class MyParticleNetwork(tf.keras.Model):
 
     def __init__(
-            self,
-            kernel_size=[4, 4, 4],
-            radius_scale=1.5,
-            coordinate_mapping='ball_to_cube_volume_preserving',
-            interpolation='linear',
-            use_window=True,
-            particle_radius=0.025,
-            timestep=1 / 50,
+        self,
+        kernel_size=[4, 4, 4],
+        radius_scale=1.5,
+        coordinate_mapping='ball_to_cube_volume_preserving',
+        interpolation='linear',
+        use_window=True,
+        particle_radius=0.025,
+        timestep=1 / 50,
     ):
         super().__init__(name=type(self).__name__)
         self.layer_channels = [32, 64, 64, 3]
@@ -111,11 +111,8 @@ class MyParticleNetwork(tf.keras.Model):
         self.ans_conv0_fluid = self.conv0_fluid(fluid_feats, pos, pos,
                                                 filter_extent)
         self.ans_dense0_fluid = self.dense0_fluid(fluid_feats)
-        self.ans_conv0_obstacle = self.conv0_obstacle(
-            box_feats,
-            box,
-            pos,
-            filter_extent)
+        self.ans_conv0_obstacle = self.conv0_obstacle(box_feats, box, pos,
+                                                      filter_extent)
 
         feats = tf.concat([
             self.ans_conv0_obstacle, self.ans_conv0_fluid, self.ans_dense0_fluid
