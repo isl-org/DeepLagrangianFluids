@@ -126,7 +126,7 @@ def create_mesh(input_file, idx, args):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Creates a mesh sequence from a particle ply sequence.",
+        description="Creates a mesh sequence from a particle .npz sequence.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--input_glob",
                         type=str,
