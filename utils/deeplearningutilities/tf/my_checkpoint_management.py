@@ -23,6 +23,8 @@ class MyCheckpointManager:
         checkpoint            : tf.train.Checkpoint
                                 The checkpoint object
 
+        directory             : The directory for storing checkpoints.
+
         keep_checkpoint_steps : list or set of integers
                                 A set of steps for which checkpoints are kept.
 
