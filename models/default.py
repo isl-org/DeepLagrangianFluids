@@ -144,7 +144,13 @@ class MyParticleNetwork(tf.keras.Model):
         return self.pos_correction
 
     def call(self, inputs, fixed_radius_search_hash_table=None):
-        """computes 1 simulation timestep"""
+        """computes 1 simulation timestep
+        inputs: list or tuple with (pos,vel,feats,box,box_feats)
+          pos and vel are the positions and velocities of the fluid particles.
+          feats is reserved for passing additional features, use None here.
+          box are the positions of the static particles and box_feats are the
+          normals of the static particles.
+        """
         pos, vel, feats, box, box_feats = inputs
 
         pos2, vel2 = self.integrate_pos_vel(pos, vel)
