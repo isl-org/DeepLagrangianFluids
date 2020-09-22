@@ -9,7 +9,7 @@ from glob import glob
 import time
 import tensorflow as tf
 from utils.deeplearningutilities.tf import Trainer, MyCheckpointManager
-from evaluate_network import evaluate
+from evaluate_network import evaluate_tf as evaluate
 
 # the train dir stores all checkpoints and summaries. The dir name is the name of this file without .py
 train_dir = os.path.splitext(os.path.basename(__file__))[0]

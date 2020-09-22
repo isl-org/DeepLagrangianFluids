@@ -13,7 +13,7 @@ from datasets.dataset_reader_physics import read_data_val
 from fluid_evaluation_helper import FluidErrors
 
 
-def evaluate(model, val_dataset, frame_skip, fluid_errors=None):
+def evaluate_tf(model, val_dataset, frame_skip, fluid_errors=None):
     print('evaluating.. ', end='')
 
     if fluid_errors is None:
@@ -73,7 +73,10 @@ def evaluate(model, val_dataset, frame_skip, fluid_errors=None):
     return result
 
 
-def evaluate_whole_sequence(model, val_dataset, frame_skip, fluid_errors=None):
+def evaluate_whole_sequence_tf(model,
+                               val_dataset,
+                               frame_skip,
+                               fluid_errors=None):
     print('evaluating.. ', end='')
 
     if fluid_errors is None:
@@ -121,18 +124,151 @@ def evaluate_whole_sequence(model, val_dataset, frame_skip, fluid_errors=None):
     return result
 
 
-def eval_checkpoint(checkpoint_path, val_files, fluid_errors, options):
-    import tensorflow as tf
+def evaluate_torch(model, val_dataset, frame_skip, device, fluid_errors=None):
+    import torch
+    print('evaluating.. ', end='')
 
+    if fluid_errors is None:
+        fluid_errors = FluidErrors()
+
+    skip = frame_skip
+
+    last_scene_id = 0
+    frames = []
+    for data in val_dataset:
+        if data['frame_id0'][0] == 0:
+            frames = []
+        if data['frame_id0'][0] % skip < 3:
+            frames.append(data)
+        if data['frame_id0'][0] % skip == 3:
+
+            if len(
+                    set([
+                        frames[0]['scene_id0'][0], frames[1]['scene_id0'][0],
+                        frames[2]['scene_id0'][0]
+                    ])) == 1:
+                scene_id = frames[0]['scene_id0'][0]
+                if last_scene_id != scene_id:
+                    last_scene_id = scene_id
+                    print(scene_id, end=' ', flush=True)
+                frame0_id = frames[0]['frame_id0'][0]
+                frame1_id = frames[1]['frame_id0'][0]
+                frame2_id = frames[2]['frame_id0'][0]
+                box = torch.from_numpy(frames[0]['box'][0]).to(device)
+                box_normals = torch.from_numpy(
+                    frames[0]['box_normals'][0]).to(device)
+                gt_pos1 = frames[1]['pos0'][0]
+                gt_pos2 = frames[2]['pos0'][0]
+
+                inputs = (torch.from_numpy(frames[0]['pos0'][0]).to(device),
+                          torch.from_numpy(frames[0]['vel0'][0]).to(device),
+                          None, box, box_normals)
+                pr_pos1, pr_vel1 = model(inputs)
+
+                inputs = (pr_pos1, pr_vel1, None, box, box_normals)
+                pr_pos2, pr_vel2 = model(inputs)
+
+                fluid_errors.add_errors(scene_id, frame0_id, frame1_id,
+                                        pr_pos1.cpu().detach().numpy(), gt_pos1)
+                fluid_errors.add_errors(scene_id, frame0_id, frame2_id,
+                                        pr_pos2.cpu().detach().numpy(), gt_pos2)
+
+            frames = []
+
+    result = {}
+    result['err_n1'] = np.mean(
+        [v['mean'] for k, v in fluid_errors.errors.items() if k[1] + 1 == k[2]])
+    result['err_n2'] = np.mean(
+        [v['mean'] for k, v in fluid_errors.errors.items() if k[1] + 2 == k[2]])
+
+    print(result)
+    print('done')
+
+    return result
+
+
+def evaluate_whole_sequence_torch(model,
+                                  val_dataset,
+                                  frame_skip,
+                                  device,
+                                  fluid_errors=None):
+    import torch
+    print('evaluating.. ', end='')
+
+    if fluid_errors is None:
+        fluid_errors = FluidErrors()
+
+    skip = frame_skip
+
+    last_scene_id = None
+    for data in val_dataset:
+        scene_id = data['scene_id0'][0]
+        if last_scene_id is None or last_scene_id != scene_id:
+            print(scene_id, end=' ', flush=True)
+            last_scene_id = scene_id
+            box = torch.from_numpy(data['box'][0]).to(device)
+            box_normals = torch.from_numpy(data['box_normals'][0]).to(device)
+            init_pos = torch.from_numpy(data['pos0'][0]).to(device)
+            init_vel = torch.from_numpy(data['vel0'][0]).to(device)
+
+            inputs = (init_pos, init_vel, None, box, box_normals)
+        else:
+            inputs = (pr_pos, pr_vel, None, box, box_normals)
+
+        pr_pos, pr_vel = model(inputs)
+
+        frame_id = data['frame_id0'][0]
+        if frame_id > 0 and frame_id % skip == 0:
+            gt_pos = data['pos0'][0]
+            fluid_errors.add_errors(scene_id,
+                                    0,
+                                    frame_id,
+                                    pr_pos.cpu().numpy(),
+                                    gt_pos,
+                                    compute_gt2pred_distance=True)
+
+    result = {}
+    result['whole_seq_err'] = np.mean([
+        v['gt2pred_mean']
+        for k, v in fluid_errors.errors.items()
+        if 'gt2pred_mean' in v
+    ])
+
+    print(result)
+    print('done')
+
+    return result
+
+
+def eval_checkpoint(checkpoint_path, val_files, fluid_errors, options):
     val_dataset = read_data_val(files=val_files, window=1, cache_data=True)
 
-    model = trainscript.create_model()
-    checkpoint = tf.train.Checkpoint(step=tf.Variable(0), model=model)
-    checkpoint.restore(checkpoint_path).expect_partial()
+    if checkpoint_path.endswith('.index'):
+        import tensorflow as tf
 
-    evaluate(model, val_dataset, options.frame_skip, fluid_errors)
-    evaluate_whole_sequence(model, val_dataset, options.frame_skip,
-                            fluid_errors)
+        model = trainscript.create_model()
+        checkpoint = tf.train.Checkpoint(step=tf.Variable(0), model=model)
+        checkpoint.restore(
+            os.path.splitext(checkpoint_path)[0]).expect_partial()
+
+        evaluate_tf(model, val_dataset, options.frame_skip, fluid_errors)
+        evaluate_whole_sequence_tf(model, val_dataset, options.frame_skip,
+                                   fluid_errors)
+    elif checkpoint_path.endswith('.pt'):
+        import torch
+
+        model = trainscript.create_model()
+        checkpoint = torch.load(checkpoint_path)
+        model.load_state_dict(checkpoint['model'])
+        model.to(options.device)
+        model.requires_grad_(False)
+        evaluate_torch(model, val_dataset, options.frame_skip, options.device,
+                       fluid_errors)
+        evaluate_whole_sequence_torch(model, val_dataset, options.frame_skip,
+                                      options.device, fluid_errors)
+
+    else:
+        raise Exception('Unknown checkpoint format')
 
 
 def print_errors(fluid_errors):
@@ -164,6 +300,10 @@ def main():
                         type=int,
                         default=5,
                         help="The frame skip. Default is 5.")
+    parser.add_argument("--device",
+                        type=str,
+                        default="cuda",
+                        help="The device to use. Applies only for torch.")
 
     args = parser.parse_args()
 
@@ -173,11 +313,17 @@ def main():
     trainscript = importlib.import_module(module_name)
 
     # get a list of checkpoints
+
+    # tensorflow checkpoints
     checkpoint_files = glob(
         os.path.join(trainscript.train_dir, 'checkpoints', 'ckpt-*.index'))
-    all_checkpoints = sorted([(int(re.match('.*ckpt-(\d+)\.index', x).group(1)),
-                               os.path.splitext(x)[0])
-                              for x in checkpoint_files])
+    # torch checkpoints
+    checkpoint_files.extend(
+        glob(os.path.join(trainscript.train_dir, 'checkpoints', 'ckpt-*.pt')))
+    all_checkpoints = sorted([
+        (int(re.match('.*ckpt-(\d+)\.(pt|index)', x).group(1)), x)
+        for x in checkpoint_files
+    ])
 
     # select the checkpoint
     if args.checkpoint_iter is not None:
