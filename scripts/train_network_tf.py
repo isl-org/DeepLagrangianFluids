@@ -27,7 +27,7 @@ train_params = TrainParams(50 * _k, 0.001, 16)
 
 
 def create_model():
-    from models.default import MyParticleNetwork
+    from models.default_tf import MyParticleNetwork
     """Returns an instance of the network for training and evaluation"""
     model = MyParticleNetwork()
     return model
