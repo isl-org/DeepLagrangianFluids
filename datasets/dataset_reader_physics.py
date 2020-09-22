@@ -3,7 +3,7 @@ import os
 import sys
 import numpy as np
 from glob import glob
-from tensorpack import dataflow
+import dataflow
 import numpy as np
 import zstandard as zstd
 import msgpack
