@@ -254,19 +254,30 @@ def eval_checkpoint(checkpoint_path, val_files, fluid_errors, options):
         evaluate_tf(model, val_dataset, options.frame_skip, fluid_errors)
         evaluate_whole_sequence_tf(model, val_dataset, options.frame_skip,
                                    fluid_errors)
+    elif checkpoint_path.endswith('.h5'):
+        import tensorflow as tf
+
+        model = trainscript.create_model()
+        model.init()
+        model.load_weights(checkpoint_path, by_name=True)
+        evaluate_tf(model, val_dataset, options.frame_skip, fluid_errors)
+        evaluate_whole_sequence_tf(model, val_dataset, options.frame_skip,
+                                   fluid_errors)
     elif checkpoint_path.endswith('.pt'):
         import torch
 
         model = trainscript.create_model()
         checkpoint = torch.load(checkpoint_path)
-        model.load_state_dict(checkpoint['model'])
+        if 'model' in checkpoint:
+            model.load_state_dict(checkpoint['model'])
+        else:
+            model.load_state_dict(checkpoint)
         model.to(options.device)
         model.requires_grad_(False)
         evaluate_torch(model, val_dataset, options.frame_skip, options.device,
                        fluid_errors)
         evaluate_whole_sequence_torch(model, val_dataset, options.frame_skip,
                                       options.device, fluid_errors)
-
     else:
         raise Exception('Unknown checkpoint format')
 
@@ -286,7 +297,9 @@ def print_errors(fluid_errors):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Evaluates a fluid network")
+    parser = argparse.ArgumentParser(
+        description="Evaluates a fluid network",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--trainscript",
                         type=str,
                         required=True,
@@ -296,6 +309,11 @@ def main():
         type=int,
         required=False,
         help="The checkpoint iteration. The default is the last checkpoint.")
+    parser.add_argument(
+        "--weights",
+        type=str,
+        required=False,
+        help="If set uses the specified weights file instead of a checkpoint.")
     parser.add_argument("--frame-skip",
                         type=int,
                         default=5,
@@ -312,36 +330,50 @@ def main():
     sys.path.append('.')
     trainscript = importlib.import_module(module_name)
 
-    # get a list of checkpoints
-
-    # tensorflow checkpoints
-    checkpoint_files = glob(
-        os.path.join(trainscript.train_dir, 'checkpoints', 'ckpt-*.index'))
-    # torch checkpoints
-    checkpoint_files.extend(
-        glob(os.path.join(trainscript.train_dir, 'checkpoints', 'ckpt-*.pt')))
-    all_checkpoints = sorted([
-        (int(re.match('.*ckpt-(\d+)\.(pt|index)', x).group(1)), x)
-        for x in checkpoint_files
-    ])
-
-    # select the checkpoint
-    if args.checkpoint_iter is not None:
-        checkpoint = dict(all_checkpoints)[args.checkpoint_iter]
+    if args.weights is not None:
+        print('evaluating :', args.weights)
+        output_path = args.weights + '_eval.json'
+        if os.path.isfile(output_path):
+            print('Printing previously computed results for :', args.weights)
+            fluid_errors = FluidErrors()
+            fluid_errors.load(output_path)
+        else:
+            fluid_errors = FluidErrors()
+            eval_checkpoint(args.weights, trainscript.val_files, fluid_errors,
+                            args)
+            fluid_errors.save(output_path)
     else:
-        checkpoint = all_checkpoints[-1]
+        # get a list of checkpoints
 
-    output_path = args.trainscript + '_eval_{}.json'.format(checkpoint[0])
-    if os.path.isfile(output_path):
-        print('Printing previously computed results for :', checkpoint)
-        fluid_errors = FluidErrors()
-        fluid_errors.load(output_path)
-    else:
-        print('evaluating :', checkpoint)
-        fluid_errors = FluidErrors()
-        eval_checkpoint(checkpoint[1], trainscript.val_files, fluid_errors,
-                        args)
-        fluid_errors.save(output_path)
+        # tensorflow checkpoints
+        checkpoint_files = glob(
+            os.path.join(trainscript.train_dir, 'checkpoints', 'ckpt-*.index'))
+        # torch checkpoints
+        checkpoint_files.extend(
+            glob(os.path.join(trainscript.train_dir, 'checkpoints',
+                              'ckpt-*.pt')))
+        all_checkpoints = sorted([
+            (int(re.match('.*ckpt-(\d+)\.(pt|index)', x).group(1)), x)
+            for x in checkpoint_files
+        ])
+
+        # select the checkpoint
+        if args.checkpoint_iter is not None:
+            checkpoint = dict(all_checkpoints)[args.checkpoint_iter]
+        else:
+            checkpoint = all_checkpoints[-1]
+
+        output_path = args.trainscript + '_eval_{}.json'.format(checkpoint[0])
+        if os.path.isfile(output_path):
+            print('Printing previously computed results for :', checkpoint)
+            fluid_errors = FluidErrors()
+            fluid_errors.load(output_path)
+        else:
+            print('evaluating :', checkpoint)
+            fluid_errors = FluidErrors()
+            eval_checkpoint(checkpoint[1], trainscript.val_files, fluid_errors,
+                            args)
+            fluid_errors.save(output_path)
 
     print_errors(fluid_errors)
     return 0
