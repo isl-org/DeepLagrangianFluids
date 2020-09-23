@@ -9,12 +9,18 @@ The following instructions show how to create the canyon scene.
 cd scenes
 
 # Run the simulation with the pretrained network
+# with TensorFlow
 ../scripts/run_network.py --weights ../scripts/pretrained_model_weights.h5 \
                           --scene canyon_scene.json \
                           --output canyon_out \
                           --num_steps 1500 \
-                          ../scripts/train_network.py
-
+                          ../scripts/train_network_tf.py
+# or with PyTorch
+../scripts/run_network.py --weights ../scripts/pretrained_model_weights.pt \
+                          --scene canyon_scene.json \
+                          --output canyon_out \
+                          --num_steps 1500 \
+                          ../scripts/train_network_torch.py
 ```
 
 ## 2. Create a surface mesh
