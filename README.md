@@ -1,5 +1,8 @@
 # Lagrangian Fluid Simulation with Continuous Convolutions
 
+![PyTorch badge](https://img.shields.io/badge/PyTorch-supported-brightgreen?style=flat&logo=pytorch)
+![TensorFlow badge](https://img.shields.io/badge/TensorFlow-supported-brightgreen?style=flat&logo=tensorflow)
+
 This repository contains code for our ICLR 2020 paper. 
 We show how to train particle-based fluid simulation networks as CNNs using 
 continuous convolutions. The code allows you to generate data, train your own 
@@ -21,8 +24,8 @@ To stay informed about updates we recommend to watch this repository.
 
 ## Dependencies
 
-- Tensorflow 2.0 or PyTorch 1.6
-- Open3D master with ML module (https://github.com/intel-isl/Open3D/)
+- Tensorflow 2.3 or PyTorch 1.6
+- Open3D 0.11 or later with ML module (https://github.com/intel-isl/Open3D/)
 - SPlisHSPlasH 2.4.0 (for generating training data and fluid particle sampling, https://github.com/InteractiveComputerGraphics/SPlisHSPlasH)
 - Tensorpack DataFlow (for reading data, ```pip install --upgrade git+https://github.com/tensorpack/dataflow.git```)
 - python-prctl (needed by Tensorpack DataFlow; depends on libcap-dev, install with ```apt install libcap-dev``` )
@@ -39,11 +42,14 @@ SPlisHSPlasH 2.4.0 is required for generating training data (ensure that it is c
 We recommend to use the latest versions for all other packages.
 
 
-<!--### Open3D 0.11 and later-->
-<!--The ML module is included in Open3D 0.11 and later and can simply be installed with ```pip install open3d```.-->
-<!--Make sure that the version of your ML framework matches the version for which the ML ops in Open3D have been built.-->
-<!--For Open3D 0.11 this is CUDA 10.1, TensorFlow 2.3 and PyTorch 1.6.-->
-<!--If you cannot match this configuration it is recommended to build Open3D from source.-->
+### Installing Open3D 0.11 and later with pip
+The ML module is included in Open3D 0.11 and later and can simply be installed with
+```bash
+pip install open3d
+```
+Make sure that the version of your ML framework matches the version for which the ML ops in Open3D have been built.
+For Open3D 0.11 this is CUDA 10.1, TensorFlow 2.3 and PyTorch 1.6.
+If you cannot match this configuration it is recommended to build Open3D from source.
 
 
 ### Building Open3D with ML module from source.
