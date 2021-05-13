@@ -106,9 +106,22 @@ To generate the training and validation data
     ```
 
 ### Data download
-If you want to skip the data generation step you can download training and validation data from this [link](https://drive.google.com/file/d/1b3OjeXnsvwUAeUq2Z0lcrX7j9U7zLO07).
-The training data has been generated with the scripts in this repository. 
-The validation data corresponds to the data used in the paper.
+If you want to skip the data generation step you can download training and validation data from the links below.
+
+| default data  | 34GB | [link](https://drive.google.com/file/d/1b3OjeXnsvwUAeUq2Z0lcrX7j9U7zLO07) |
+|---------------|------|---------------------------------------------------------------------------|
+| DPI dam break | 24GB | [link](https://drive.google.com/file/d/1_-aAd_GHX8StyKWZLpvSWeGQ3vyytf7L) |
+| 6k box data   | 23GB | [link](https://drive.google.com/file/d/1eDFJD-wiTxzDzywSvXLgzffI25su1S1q) |
+
+For the default data the training set has been generated with the scripts in this
+repository and the validation data corresponds to the data used in the paper.
+
+The DPI dam break data has been generated with the code from the DPI-Nets repo.
+
+The 6k box data is a simplified version of the default data with a constant number
+of particles and always uses a simple box as environment.
+
+
 
 ### Training scripts
 To train the model with the generated data simply run one of the ```train_network_x.py``` scripts from within the ```scripts``` folder. 
