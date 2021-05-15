@@ -2,6 +2,8 @@
 import os
 import numpy as np
 import sys
+import argparse
+import yaml
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from datasets.dataset_reader_physics import read_data_train, read_data_val
 from collections import namedtuple
@@ -11,29 +13,35 @@ import torch
 from utils.deeplearningutilities.torch import Trainer, MyCheckpointManager
 from evaluate_network import evaluate_torch as evaluate
 
-# the train dir stores all checkpoints and summaries. The dir name is the name of this file without .py
-train_dir = os.path.splitext(os.path.basename(__file__))[0]
-
-dataset_path = os.path.join(os.path.dirname(__file__), '..', 'datasets',
-                            'ours_default_data')
-
-val_files = sorted(glob(os.path.join(dataset_path, 'valid', '*.zst')))
-train_files = sorted(glob(os.path.join(dataset_path, 'train', '*.zst')))
-
 _k = 1000
 
 TrainParams = namedtuple('TrainParams', ['max_iter', 'base_lr', 'batch_size'])
 train_params = TrainParams(50 * _k, 0.001, 16)
 
 
-def create_model():
+def create_model(**kwargs):
     from models.default_torch import MyParticleNetwork
     """Returns an instance of the network for training and evaluation"""
-    model = MyParticleNetwork()
+    model = MyParticleNetwork(**kwargs)
     return model
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Training script")
+    parser.add_argument("cfg", type=str, help="The path to the yaml config file")
+    if len(sys.argv)==1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+    args = parser.parse_args()
+
+    with open(args.cfg, 'r') as f:
+        cfg = yaml.safe_load(f)
+
+    # the train dir stores all checkpoints and summaries. The dir name is the name of this file combined with the name of the config file
+    train_dir = os.path.splitext(os.path.basename(__file__))[0] + '_' + os.path.splitext(os.path.basename(args.cfg))[0]
+
+    val_files = sorted(glob(os.path.join(cfg['dataset_dir'], 'valid', '*.zst')))
+    train_files = sorted(glob(os.path.join(cfg['dataset_dir'], 'train', '*.zst')))
 
     device = torch.device('cuda')
 
@@ -42,13 +50,13 @@ def main():
     dataset = read_data_train(files=train_files,
                               batch_size=train_params.batch_size,
                               window=3,
-                              random_rotation=True,
-                              num_workers=2)
+                              num_workers=2,
+                              **cfg.get('train_data',{}))
     data_iter = iter(dataset)
 
     trainer = Trainer(train_dir)
 
-    model = create_model()
+    model = create_model(**cfg.get('model',{}))
     model.to(device)
 
     boundaries = [
@@ -172,7 +180,8 @@ def main():
             for k, v in evaluate(model,
                                  val_dataset,
                                  frame_skip=20,
-                                 device=device).items():
+                                 device=device,
+                                 **cfg.get('evaluation',{})).items():
                 trainer.summary_writer.add_scalar('eval/' + k, v,
                                                   trainer.current_step)
 

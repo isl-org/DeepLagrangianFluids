@@ -7,13 +7,14 @@ import re
 from glob import glob
 import time
 import importlib
+import yaml
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from datasets.dataset_reader_physics import read_data_val
 from fluid_evaluation_helper import FluidErrors
 
 
-def evaluate_tf(model, val_dataset, frame_skip, fluid_errors=None):
+def evaluate_tf(model, val_dataset, frame_skip, fluid_errors=None, scale=1):
     print('evaluating.. ', end='')
 
     if fluid_errors is None:
@@ -54,10 +55,10 @@ def evaluate_tf(model, val_dataset, frame_skip, fluid_errors=None):
                 inputs = (pr_pos1, pr_vel1, None, box, box_normals)
                 pr_pos2, pr_vel2 = model(inputs)
 
-                fluid_errors.add_errors(scene_id, frame0_id, frame1_id, pr_pos1,
-                                        gt_pos1)
-                fluid_errors.add_errors(scene_id, frame0_id, frame2_id, pr_pos2,
-                                        gt_pos2)
+                fluid_errors.add_errors(scene_id, frame0_id, frame1_id, scale*pr_pos1,
+                                        scale*gt_pos1)
+                fluid_errors.add_errors(scene_id, frame0_id, frame2_id, scale*pr_pos2,
+                                        scale*gt_pos2)
 
             frames = []
 
@@ -76,7 +77,8 @@ def evaluate_tf(model, val_dataset, frame_skip, fluid_errors=None):
 def evaluate_whole_sequence_tf(model,
                                val_dataset,
                                frame_skip,
-                               fluid_errors=None):
+                               fluid_errors=None,
+                               scale=1):
     print('evaluating.. ', end='')
 
     if fluid_errors is None:
@@ -107,8 +109,8 @@ def evaluate_whole_sequence_tf(model,
             fluid_errors.add_errors(scene_id,
                                     0,
                                     frame_id,
-                                    pr_pos,
-                                    gt_pos,
+                                    scale*pr_pos,
+                                    scale*gt_pos,
                                     compute_gt2pred_distance=True)
 
     result = {}
@@ -124,7 +126,7 @@ def evaluate_whole_sequence_tf(model,
     return result
 
 
-def evaluate_torch(model, val_dataset, frame_skip, device, fluid_errors=None):
+def evaluate_torch(model, val_dataset, frame_skip, device, fluid_errors=None, scale=1):
     import torch
     print('evaluating.. ', end='')
 
@@ -169,9 +171,9 @@ def evaluate_torch(model, val_dataset, frame_skip, device, fluid_errors=None):
                 pr_pos2, pr_vel2 = model(inputs)
 
                 fluid_errors.add_errors(scene_id, frame0_id, frame1_id,
-                                        pr_pos1.cpu().detach().numpy(), gt_pos1)
+                                        scale*pr_pos1.cpu().detach().numpy(), scale*gt_pos1)
                 fluid_errors.add_errors(scene_id, frame0_id, frame2_id,
-                                        pr_pos2.cpu().detach().numpy(), gt_pos2)
+                                        scale*pr_pos2.cpu().detach().numpy(), scale*gt_pos2)
 
             frames = []
 
@@ -191,7 +193,8 @@ def evaluate_whole_sequence_torch(model,
                                   val_dataset,
                                   frame_skip,
                                   device,
-                                  fluid_errors=None):
+                                  fluid_errors=None,
+                                  scale=1):
     import torch
     print('evaluating.. ', end='')
 
@@ -223,8 +226,8 @@ def evaluate_whole_sequence_torch(model,
             fluid_errors.add_errors(scene_id,
                                     0,
                                     frame_id,
-                                    pr_pos.cpu().numpy(),
-                                    gt_pos,
+                                    scale*pr_pos.cpu().numpy(),
+                                    scale*gt_pos,
                                     compute_gt2pred_distance=True)
 
     result = {}
@@ -240,33 +243,33 @@ def evaluate_whole_sequence_torch(model,
     return result
 
 
-def eval_checkpoint(checkpoint_path, val_files, fluid_errors, options):
+def eval_checkpoint(checkpoint_path, val_files, fluid_errors, options, cfg):
     val_dataset = read_data_val(files=val_files, window=1, cache_data=True)
 
     if checkpoint_path.endswith('.index'):
         import tensorflow as tf
 
-        model = trainscript.create_model()
+        model = trainscript.create_model(**cfg.get('model',{}))
         checkpoint = tf.train.Checkpoint(step=tf.Variable(0), model=model)
         checkpoint.restore(
             os.path.splitext(checkpoint_path)[0]).expect_partial()
 
-        evaluate_tf(model, val_dataset, options.frame_skip, fluid_errors)
+        evaluate_tf(model, val_dataset, options.frame_skip, fluid_errors, **cfg.get('evaluation',{}))
         evaluate_whole_sequence_tf(model, val_dataset, options.frame_skip,
-                                   fluid_errors)
+                                   fluid_errors, **cfg.get('evaluation',{}))
     elif checkpoint_path.endswith('.h5'):
         import tensorflow as tf
 
-        model = trainscript.create_model()
+        model = trainscript.create_model(**cfg.get('model',{}))
         model.init()
         model.load_weights(checkpoint_path, by_name=True)
-        evaluate_tf(model, val_dataset, options.frame_skip, fluid_errors)
+        evaluate_tf(model, val_dataset, options.frame_skip, fluid_errors, **cfg.get('evaluation',{}))
         evaluate_whole_sequence_tf(model, val_dataset, options.frame_skip,
-                                   fluid_errors)
+                                   fluid_errors, **cfg.get('evaluation',{}))
     elif checkpoint_path.endswith('.pt'):
         import torch
 
-        model = trainscript.create_model()
+        model = trainscript.create_model(**cfg.get('model',{}))
         checkpoint = torch.load(checkpoint_path)
         if 'model' in checkpoint:
             model.load_state_dict(checkpoint['model'])
@@ -275,9 +278,9 @@ def eval_checkpoint(checkpoint_path, val_files, fluid_errors, options):
         model.to(options.device)
         model.requires_grad_(False)
         evaluate_torch(model, val_dataset, options.frame_skip, options.device,
-                       fluid_errors)
+                       fluid_errors, **cfg.get('evaluation',{}))
         evaluate_whole_sequence_torch(model, val_dataset, options.frame_skip,
-                                      options.device, fluid_errors)
+                                      options.device, fluid_errors, **cfg.get('evaluation',{}))
     else:
         raise Exception('Unknown checkpoint format')
 
@@ -304,6 +307,7 @@ def main():
                         type=str,
                         required=True,
                         help="The python training script.")
+    parser.add_argument("--cfg", type=str, required=True, help="The path to the yaml config file")
     parser.add_argument(
         "--checkpoint_iter",
         type=int,
@@ -325,32 +329,38 @@ def main():
 
     args = parser.parse_args()
 
+    with open(args.cfg, 'r') as f:
+        cfg = yaml.safe_load(f)
+
     global trainscript
     module_name = os.path.splitext(os.path.basename(args.trainscript))[0]
     sys.path.append('.')
     trainscript = importlib.import_module(module_name)
 
+    train_dir = module_name + '_' + os.path.splitext(os.path.basename(args.cfg))[0]
+    val_files = sorted(glob(os.path.join(cfg['dataset_dir'], 'valid', '*.zst')))
+
     if args.weights is not None:
         print('evaluating :', args.weights)
         output_path = args.weights + '_eval.json'
         if os.path.isfile(output_path):
-            print('Printing previously computed results for :', args.weights)
+            print('Printing previously computed results for :', args.weights, output_path)
             fluid_errors = FluidErrors()
             fluid_errors.load(output_path)
         else:
             fluid_errors = FluidErrors()
-            eval_checkpoint(args.weights, trainscript.val_files, fluid_errors,
-                            args)
+            eval_checkpoint(args.weights, val_files, fluid_errors,
+                            args, cfg)
             fluid_errors.save(output_path)
     else:
         # get a list of checkpoints
 
         # tensorflow checkpoints
         checkpoint_files = glob(
-            os.path.join(trainscript.train_dir, 'checkpoints', 'ckpt-*.index'))
+            os.path.join(train_dir, 'checkpoints', 'ckpt-*.index'))
         # torch checkpoints
         checkpoint_files.extend(
-            glob(os.path.join(trainscript.train_dir, 'checkpoints',
+            glob(os.path.join(train_dir, 'checkpoints',
                               'ckpt-*.pt')))
         all_checkpoints = sorted([
             (int(re.match('.*ckpt-(\d+)\.(pt|index)', x).group(1)), x)
@@ -363,16 +373,16 @@ def main():
         else:
             checkpoint = all_checkpoints[-1]
 
-        output_path = args.trainscript + '_eval_{}.json'.format(checkpoint[0])
+        output_path = train_dir + '_eval_{}.json'.format(checkpoint[0])
         if os.path.isfile(output_path):
-            print('Printing previously computed results for :', checkpoint)
+            print('Printing previously computed results for :', checkpoint, output_path)
             fluid_errors = FluidErrors()
             fluid_errors.load(output_path)
         else:
             print('evaluating :', checkpoint)
             fluid_errors = FluidErrors()
-            eval_checkpoint(checkpoint[1], trainscript.val_files, fluid_errors,
-                            args)
+            eval_checkpoint(checkpoint[1], val_files, fluid_errors,
+                            args, cfg)
             fluid_errors.save(output_path)
 
     print_errors(fluid_errors)
