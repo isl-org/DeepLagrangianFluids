@@ -14,6 +14,7 @@ class MyParticleNetwork(tf.keras.Model):
         use_window=True,
         particle_radius=0.025,
         timestep=1 / 50,
+        gravity=(0, -9.81, 0)
     ):
         super().__init__(name=type(self).__name__)
         self.layer_channels = [32, 64, 64, 3]
@@ -26,6 +27,7 @@ class MyParticleNetwork(tf.keras.Model):
         self.filter_extent = np.float32(self.radius_scale * 6 *
                                         self.particle_radius)
         self.timestep = timestep
+        self.gravity = gravity
 
         self._all_convs = []
 
@@ -77,7 +79,7 @@ class MyParticleNetwork(tf.keras.Model):
     def integrate_pos_vel(self, pos1, vel1):
         """Apply gravity and integrate position and velocity"""
         dt = self.timestep
-        vel2 = vel1 + dt * tf.constant([0, -9.81, 0])
+        vel2 = vel1 + dt * tf.constant(self.gravity)
         pos2 = pos1 + dt * (vel2 + vel1) / 2
         return pos2, vel2
 
