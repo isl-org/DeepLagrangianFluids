@@ -28,8 +28,10 @@ def create_model(**kwargs):
 
 def main():
     parser = argparse.ArgumentParser(description="Training script")
-    parser.add_argument("cfg", type=str, help="The path to the yaml config file")
-    if len(sys.argv)==1:
+    parser.add_argument("cfg",
+                        type=str,
+                        help="The path to the yaml config file")
+    if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
         sys.exit(1)
     args = parser.parse_args()
@@ -38,10 +40,13 @@ def main():
         cfg = yaml.safe_load(f)
 
     # the train dir stores all checkpoints and summaries. The dir name is the name of this file combined with the name of the config file
-    train_dir = os.path.splitext(os.path.basename(__file__))[0] + '_' + os.path.splitext(os.path.basename(args.cfg))[0]
+    train_dir = os.path.splitext(
+        os.path.basename(__file__))[0] + '_' + os.path.splitext(
+            os.path.basename(args.cfg))[0]
 
     val_files = sorted(glob(os.path.join(cfg['dataset_dir'], 'valid', '*.zst')))
-    train_files = sorted(glob(os.path.join(cfg['dataset_dir'], 'train', '*.zst')))
+    train_files = sorted(
+        glob(os.path.join(cfg['dataset_dir'], 'train', '*.zst')))
 
     device = torch.device('cuda')
 
@@ -51,12 +56,12 @@ def main():
                               batch_size=train_params.batch_size,
                               window=3,
                               num_workers=2,
-                              **cfg.get('train_data',{}))
+                              **cfg.get('train_data', {}))
     data_iter = iter(dataset)
 
     trainer = Trainer(train_dir)
 
-    model = create_model(**cfg.get('model',{}))
+    model = create_model(**cfg.get('model', {}))
     model.to(device)
 
     boundaries = [
@@ -181,7 +186,7 @@ def main():
                                  val_dataset,
                                  frame_skip=20,
                                  device=device,
-                                 **cfg.get('evaluation',{})).items():
+                                 **cfg.get('evaluation', {})).items():
                 trainer.summary_writer.add_scalar('eval/' + k, v,
                                                   trainer.current_step)
 

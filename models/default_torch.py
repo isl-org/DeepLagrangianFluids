@@ -7,16 +7,16 @@ import numpy as np
 class MyParticleNetwork(torch.nn.Module):
 
     def __init__(
-        self,
-        kernel_size=[4, 4, 4],
-        radius_scale=1.5,
-        coordinate_mapping='ball_to_cube_volume_preserving',
-        interpolation='linear',
-        use_window=True,
-        particle_radius=0.025,
-        timestep=1 / 50,
-        gravity=(0, -9.81, 0),
-        other_feats_channels=0,
+            self,
+            kernel_size=[4, 4, 4],
+            radius_scale=1.5,
+            coordinate_mapping='ball_to_cube_volume_preserving',
+            interpolation='linear',
+            use_window=True,
+            particle_radius=0.025,
+            timestep=1 / 50,
+            gravity=(0, -9.81, 0),
+            other_feats_channels=0,
     ):
         super().__init__()
         self.layer_channels = [32, 64, 64, 3]
