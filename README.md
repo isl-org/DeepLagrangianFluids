@@ -117,6 +117,8 @@ For the default data the training set has been generated with the scripts in thi
 repository and the validation data corresponds to the data used in the paper.
 
 The DPI dam break data has been generated with the code from the DPI-Nets repo.
+Note that the data has been scaled to match the particle radius used for our method.
+See the ```scripts/dambreak.yaml``` config file for more information on the scale factor.
 
 The 6k box data is a simplified version of the default data with a constant number
 of particles and always uses a simple box as environment.
@@ -128,22 +130,22 @@ To train the model with the generated data simply run one of the ```train_networ
 ```bash
 cd scripts
 # TensorFlow version
-./train_network_tf.py
+./train_network_tf.py default.yaml
 # PyTorch version
-./train_network_torch.py
+./train_network_torch.py default.yaml
 ```
-The scripts will create a folder ```train_network_tf``` or ```train_network_torch``` respectively with snapshots and log files.
+The scripts will create a folder ```train_network_tf_default``` or ```train_network_torch_default``` respectively with snapshots and log files.
 The log files can be viewed with Tensorboard.
 
 ### Evaluating the network
 To evaluate the network run the ```scripts/evaluate_network.py``` script like this
 ```bash
-./evaluate_network.py --trainscript train_network_tf.py
+./evaluate_network.py --trainscript train_network_tf.py --cfg default.yaml
 # or
-./evaluate_network.py --trainscript train_network_torch.py
+./evaluate_network.py --trainscript train_network_torch.py --cfg default.yaml
 ```
 
-This will create the file ```train_network_{tf,torch}.py_eval_50000.json```, which contains the 
+This will create the file ```train_network_{tf,torch}_default_eval_50000.json```, which contains the 
 individual errors between frame pairs.
 
 The script will also print the overall errors. The output should look like 
