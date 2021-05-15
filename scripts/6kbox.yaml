@@ -1,0 +1,5 @@
+# This is the configuration file for training the network with the simplified dataset
+# that has a constant number of 6000 particles and a simple box environment.
+dataset_dir: "../datasets/ours_6k_box_data" # path to the dataset directory with 'train' and 'valid' subdirs.
+train_data:
+  random_rotation: true # randomly rotate training data about the gravity axis.

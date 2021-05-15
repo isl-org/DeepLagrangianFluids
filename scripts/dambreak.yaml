@@ -1,0 +1,15 @@
+# This is the configuration file for training the network with the DPI dam break data.
+dataset_dir: "../datasets/dpi_dam_break" # path to the dataset directory with 'train' and 'valid' subdirs.
+train_data:
+  random_rotation: false # randomly rotate training data about the gravity axis.
+model:
+  # The dam break data is scaled such that the Flex fluid rest distance (0.055)
+  # matches the particle diameter (0.05) that we use. This means we have to
+  # scale the gravity accordingly, i.e. -8.9181 = (0.05/0.055)*-9.81.
+  gravity: [0, -8.91818181818182, 0]
+  # The timestep for the dam break data is 1/60
+  timestep: .0166666666
+evaluation:
+  # To compute errors in meters we undo the scaling of the dataset for the 
+  # evaluation. The scaling factor is 1.1 = 0.055/0.05.
+  scale: 1.1
