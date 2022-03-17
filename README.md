@@ -66,7 +66,7 @@ cd Open3D/build
 
 # This builds the ml ops for both TensorFlow and PyTorch.
 # If you don't need both frameworks you can disable the one you don't need with OFF.
-cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_TENSORFLOW_OPS=ON -DBUILD_PYTORCH_OPS=ON -DBUILD_CUDA_MODULE=ON
+cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_TENSORFLOW_OPS=ON -DBUILD_PYTORCH_OPS=ON -DBUILD_CUDA_MODULE=ON -GLIBCXX_USE_CXX11_ABI=OFF
 make install-pip-package
 ```
 
