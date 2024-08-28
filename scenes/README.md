@@ -27,7 +27,7 @@ cd scenes
 This step is optional and can be skipped if you want to visualize only the particles.
 The following will create a ```.ply``` file for each input file. 
 ```bash
-./scripts/create_surface_meshes.py --input_glob "canyon_out/fluid*.npz" \
+../scripts/create_surface_meshes.py --input_glob "canyon_out/fluid*.npz" \
                                    --outdir canyon_out
 ```
 The script requires OpenVDB with python bindings.
